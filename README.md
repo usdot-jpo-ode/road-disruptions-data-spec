@@ -1,1 +1,2 @@
 # road-disruptions-data-spec
+The repository defines two complementary data specifications. The Event Specification represents roadway disruptions and conditions, including incidents, planned special events, road weather events, and detours. The Observation Specification represents measured or reported conditions at a specific time and location, including road weather station data, automatic vehicle location data, and vehicle CAN bus data.

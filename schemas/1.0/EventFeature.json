@@ -1,0 +1,710 @@
+{
+    "$id": "https://raw.githubusercontent.com/usdot-jpo-ode/road-disruptions-data-spec/blob/develop/schemas/1.0/EventFeature.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Event Feature (GeoJSON Feature)",
+    "type": "object",
+    "required": [
+      "id",
+      "type",
+      "properties",
+      "geometry"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "A unique identifier issued by the data feed provider to identify the Event. This identifier is a Universally Unique Identifier (UUID) as defined in [RFC 4122](https://datatracker.ietf.org/doc/html/rfc4122). For every new Event, a new UUID is created. For existing events, use the original UUID."
+      },
+      "type": {
+        "const": "Feature",
+        "description": "The GeoJSON object type; must be \u0027Feature\u0027."
+      },
+      "properties": {
+        "type": "object",
+        "oneOf": [
+          {
+            "$ref": "#/definitions/IncidentEvent"
+          },
+          {
+            "$ref": "#/definitions/PlannedSpecialEvent"
+          },
+          {
+            "$ref": "#/definitions/RoadWeatherEvent"
+          },
+          {
+            "$ref": "#/definitions/DetourRoadEvent"
+          }
+        ]
+      },
+      "geometry": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/Point"
+          },
+          {
+            "$ref": "#/definitions/LineString"
+          },
+          {
+            "$ref": "#/definitions/Polygon"
+          },
+          {
+            "$ref": "#/definitions/MultiLineString"
+          }
+        ]
+      },
+      "bbox": {
+        "$ref": "#/definitions/BoundingBox"
+      }
+    },
+    "definitions": {
+      "Direction": {
+        "title": "Direction Enumerated Type",
+        "type": "string",
+        "enum": [
+          "northbound",
+          "eastbound",
+          "southbound",
+          "westbound",
+          "inner-loop",
+          "outer-loop",
+          "undefined",
+          "unknown"
+        ],
+        "description": "The direction of a road based on standard naming for US roads; indicates the direction the traffic flow not the real heading angle."
+      },
+      "BoundingBox": {
+        "title": "GeoJSON Bounding Box",
+        "type": "array",
+        "minItems": 4,
+        "items": {
+          "type": "number"
+        },
+        "description": "Create a bounding box around an event using a minimum of four longitude and latitude coordinates. Information on the coordinate range for a Geometry, Feature, or FeatureCollection."
+      },
+      "Position": {
+        "type": "array",
+        "minItems": 2,
+        "items": {
+          "type": "number"
+        }
+      },
+      "Point": {
+        "title": "GeoJSON Point",
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "properties": {
+          "type": {
+            "const": "Point"
+          },
+          "coordinates": {
+            "$ref": "#/definitions/Position"
+          }
+        }
+      },
+      "LineString": {
+        "title": "GeoJSON LineString",
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "properties": {
+          "type": {
+            "const": "LineString"
+          },
+          "coordinates": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "$ref": "#/definitions/Position"
+            }
+          }
+        }
+      },
+      "Polygon": {
+        "title": "GeoJSON Polygon",
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "properties": {
+          "type": {
+            "const": "Polygon"
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 4,
+              "items": {
+                "$ref": "#/definitions/Position"
+              }
+            }
+          }
+        }
+      },
+      "MultiLineString": {
+        "title": "GeoJSON MultiLineString",
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "properties": {
+          "type": {
+            "const": "MultiLineString"
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/definitions/Position"
+              }
+            }
+          }
+        }
+      },
+      "EventDetails": {
+        "type": "object",
+        "required": [
+          "core_details"
+        ],
+        "dependencies": {
+          "beginning_reference_post": [
+            "reference_post_unit"
+          ],
+          "ending_reference_post": [
+            "reference_post_unit"
+          ]
+        },
+        "properties": {
+          "core_details": {
+            "$ref": "#/definitions/EventCoreDetails"
+          },
+          "beginning_cross_street": {
+            "type": "string",
+            "description": "Name or number of the nearest cross street along the roadway where the event begins."
+          },
+          "ending_cross_street": {
+            "type": "string",
+            "description": "Name or number of the nearest cross street along the roadway where the event ends."
+          },
+          "beginning_reference_post": {
+            "type": "number",
+            "minimum": 0,
+            "description": "The linear distance measured against a reference post marker along a roadway where the event begins."
+          },
+          "ending_reference_post": {
+            "type": "number",
+            "minimum": 0,
+            "description": "The linear distance measured against a reference post marker along a roadway where the event ends."
+          },
+          "reference_post_unit": {
+            "$ref": "#/definitions/UnitOfMeasurement",
+            "description": "The unit used for reference post."
+          },
+          "is_start_position_verified": {
+            "type": "boolean",
+            "description": "Indicates if the start position (first geometric coordinate pair) is based on actual reported data from a GPS-equipped device that measured the location of the start of the work zone."
+          },
+          "is_end_position_verified": {
+            "type": "boolean",
+            "description": "Indicates if the end position (last geometric coordinate pair) is based on actual reported data from a GPS-equipped device that measured the location of the end of the work zone."
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The UTC date and time when the road event began (e.g., 2020-11-03T19:37:00Z)."
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The UTC date and time (formatted according to RFC 3339, Section 5.6) when the road event ends (e.g., 2020-11-03T19:37:00Z)."
+          },
+          "is_start_date_verified": {
+            "type": "boolean",
+            "description": "Indicates if work has been confirmed to have started, such as from a person or field device."
+          },
+          "is_end_date_verified": {
+            "type": "boolean",
+            "description": "Indicates if work has been confirmed to have ended, such as from a person or field device."
+          },
+          "vehicle_lane_impact": {
+            "$ref": "#/definitions/VehicleLaneImpact"
+          },
+          "location_method": {
+            "$ref": "#/definitions/LocationMethod"
+          },
+          "restrictions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Restriction"
+            },
+            "description": "A list of zero or more restrictions applying to the road event."
+          },
+          "types_of_work": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/TypeOfWork"
+            },
+            "description": "A list of the types of work being done in a road event."
+          },
+          "lanes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Lane"
+            },
+            "description": "A list of individual lanes within a road event (roadway segment)."
+          }
+        }
+      },
+      "IncidentEvent": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/EventDetails"
+          },
+          {
+            "required": [
+              "is_start_position_verified",
+              "is_end_position_verified",
+              "start_date",
+              "end_date",
+              "location_method"
+            ],
+            "properties": {
+              "core_details": {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/EventCoreDetails"
+                  },
+                  {
+                    "properties": {
+                      "event_type": {
+                        "const": "Incident"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "description": "Describes an incident event including where, when, and what activities are taking place around an incident."
+      },
+      "PlannedSpecialEvent": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/EventDetails"
+          },
+          {
+            "required": [
+              "start_date",
+              "end_date",
+              "location_method"
+            ],
+            "properties": {
+              "core_details": {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/EventCoreDetails"
+                  },
+                  {
+                    "properties": {
+                      "event_type": {
+                        "const": "Planned Special Event"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "description": "Describes a planned special event including where, when, and what activities are taking place around an incident."
+      },
+      "RoadWeatherEvent": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/EventDetails"
+          },
+          {
+            "required": [
+              "is_start_position_verified",
+              "is_end_position_verified",
+              "start_date",
+              "end_date",
+              "location_method"
+            ],
+            "properties": {
+              "core_details": {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/EventCoreDetails"
+                  },
+                  {
+                    "properties": {
+                      "event_type": {
+                        "const": "Road Weather"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "description": "Describes a road weather event including where, when, and what activities are taking place around an incident."
+      },
+      "DetourRoadEvent": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/EventDetails"
+          },
+          {
+            "required": [
+              "start_date",
+              "end_date",
+              "is_start_date_verified",
+              "is_end_date_verified"
+            ],
+            "properties": {
+              "core_details": {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/EventCoreDetails"
+                  },
+                  {
+                    "properties": {
+                      "event_type": {
+                        "const": "Detour"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "description": "Describes a detour on a roadway."
+      },
+      "EventCoreDetails": {
+        "type": "object",
+        "required": [
+          "data_source_id",
+          "event_type",
+          "road_names",
+          "direction"
+        ],
+        "properties": {
+          "data_source_id": {
+            "type": "string",
+            "description": "Identifies the data source from which the event data is sourced from."
+          },
+          "event_type": {
+            "$ref": "#/definitions/EventType"
+          },
+          "related_events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/RelatedEvent"
+            },
+            "description": "A list describing one or more road events which are related to this road event, such as a work zone project it is part of or another road event that occurs before or after it in sequence."
+          },
+          "road_names": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            },
+            "description": "A list of publicly known names of the road on which the event occurs. This may include the road number designated by a jurisdiction such as a county, state or interstate (e.g., I-5, VT 133)."
+          },
+          "direction": {
+            "$ref": "#/definitions/Direction"
+          },
+          "name": {
+            "type": "string",
+            "description": "A human-readable name for the road event."
+          },
+          "description": {
+            "type": "string",
+            "description": "Short free text description of the road event."
+          },
+          "creation_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The UTC date and time (formatted according to RFC 3339, Section 5.6) when the road event was created (e.g., 2020-11-03T19:37:00Z)."
+          },
+          "update_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The UTC date and time (formatted according to RFC 3339, Section 5.6) when any information in the RoadEventFeature (including child objects) that the RoadEventCoreDetails applies to was most recently updated or confirmed as up to date."
+          }
+        },
+        "description": "The core details of an event occurring on a roadway (i.e., a incident, planned special event, road weather, or detour event) that is shared by all types of events."
+      },
+      "LocationMethod": {
+        "type": "string",
+        "enum": [
+          "Point",
+          "LineString",
+          "Polygon",
+          "MultiLineString"
+        ],
+        "description": "The typical method used to locate the beginning and end of an Event impact area."
+      },
+      "RelatedEvent": {
+        "type": "object",
+        "required": [
+          "type",
+          "related_event_id"
+        ],
+        "properties": {
+          "type": {
+            "$ref": "#/definitions/RelatedEventType",
+            "description": "The type of event being identified, such as work zone, detour, incident, road weather, or planned special event."
+          },
+          "related_event_id": {
+            "type": "string",
+            "description": "The identifier for the related event by the type property."
+          }
+        },
+        "description": "Describes additional events occuring in or around an exisitng event."
+      },
+      "Lane": {
+        "type": "object",
+        "required": [
+          "order",
+          "status",
+          "type"
+        ],
+        "properties": {
+          "order": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The position (index) of the lane in sequence on the roadway, where \u00271\u0027 represents the left-most lane or shoulder."
+          },
+          "status": {
+            "$ref": "#/definitions/LaneStatus"
+          },
+          "type": {
+            "$ref": "#/definitions/LaneType"
+          },
+          "restrictions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Restriction"
+            },
+            "description": "A list of zero or more restrictions specific to the lane."
+          }
+        },
+        "description": "An individual lane within a road event."
+      },
+      "Restriction": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "dependencies": {
+          "value": [
+            "unit"
+          ]
+        },
+        "properties": {
+          "type": {
+            "$ref": "#/definitions/RestrictionType"
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "$ref": "#/definitions/UnitOfMeasurement"
+          }
+        },
+        "description": "A restriction on a roadway or lane, including type and value."
+      },
+      "Camera": {
+        "type": "object",
+        "properties": {
+          "image_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "A URL pointing to an image file for the camera video."
+          },
+          "is_image_url_public": {
+            "type": "boolean",
+            "description": "Identifies whether image_url is publicly accessible."
+          },
+          "image_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The UTC date and time when the image was captured."
+          },
+          "video_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "A URL pointing to a video file for the camera."
+          },
+          "is_video_url_public": {
+            "type": "boolean",
+            "description": "Identifies whether video_url is publicly accessible."
+          },
+          "video_update_frequency": {
+            "type": "integer",
+            "minimum": -1,
+            "description": "The frequency at which the video feed is updated, in seconds."
+          }
+        },
+        "dependencies": {
+          "image_url": [
+            "image_timestamp"
+          ],
+          "video_url": [
+            "video_update_frequency"
+          ]
+        },
+        "description": "A camera device deployed in the field, capable of capturing still images."
+      },
+      "EventType": {
+        "type": "string",
+        "enum": [
+          "Incident",
+          "Planned Special Event",
+          "Road Weather",
+          "Detour"
+        ],
+        "description": "The type of event."
+      },
+      "IncidentEventType": {
+        "type": "string",
+        "enum": [
+          "traffic conditions",
+          "crash",
+          "closures",
+          "roadwork",
+          "obstruction",
+          "unusual driving",
+          "mobile situation",
+          "restriction class",
+          "disasters",
+          "disturbances",
+          "winter driving restrictions"
+        ],
+        "description": "The type of Incident event."
+      },
+      "IncidentEventStatus": {
+        "type": "string",
+        "enum": [
+          "open",
+          "confirmed",
+          "updated",
+          "ended"
+        ],
+        "description": "The type of Incident Event Status."
+      },
+      "VehicleLaneImpact": {
+        "type": "string",
+        "enum": [
+          "all-lanes-closed",
+          "some-lanes-closed",
+          "all-lanes-open",
+          "alternating-one-way",
+          "some-lanes-closed-merge-left",
+          "some-lanes-closed-merge-right",
+          "all-lanes-open-shift-left",
+          "all-lanes-open-shift-right",
+          "some-lanes-closed-split",
+          "flagging",
+          "temporary-traffic-signal",
+          "unknown"
+        ],
+        "description": "The impact to vehicular lanes along a single road in a single direction."
+      },
+      "RestrictionType": {
+        "type": "string",
+        "enum": [
+          "local-access-only",
+          "no-trucks",
+          "travel-peak-hours-only",
+          "hov-3",
+          "hov-2",
+          "no-parking",
+          "reduced-width",
+          "reduced-height",
+          "reduced-length",
+          "reduced-weight",
+          "axle-load-limit",
+          "gross-weight-limit",
+          "towing-prohibited",
+          "permitted-oversize-loads-prohibited",
+          "no-passing",
+          "reduced-speed",
+          "chains-required"
+        ],
+        "description": "The type of vehicle restriction on a roadway."
+      },
+      "LaneStatus": {
+        "type": "string",
+        "enum": [
+          "open",
+          "closed",
+          "shift-left",
+          "shift-right",
+          "merge-left",
+          "merge-right",
+          "alternating-flow"
+        ],
+        "description": "The status of the lane for the traveling public."
+      },
+      "LaneType": {
+        "type": "string",
+        "enum": [
+          "general",
+          "exit-lane",
+          "exit-ramp",
+          "entrance-lane",
+          "entrance-ramp",
+          "sidewalk",
+          "bike-lane",
+          "shoulder",
+          "parking",
+          "median",
+          "two-way-center-turn-lane"
+        ],
+        "description": "An indication of the type of lane or shoulder."
+      },
+      "UnitOfMeasurement": {
+        "type": "string",
+        "enum": [
+          "feet",
+          "inches",
+          "centimeters",
+          "pounds",
+          "tons",
+          "kilograms",
+          "miles",
+          "kilometers"
+        ],
+        "description": "Unit of measurement, used when providing a unit to accompany a value."
+      },
+      "RelatedEventType": {
+        "type": "string",
+        "enum": [
+          "work_zone",
+          "incident",
+          "road_weather",
+          "detour",
+          "planned_special_event"
+        ],
+        "description": "Describes how a road event is related to the event that the RelatedEvent object occurs on."
+      },
+      "TypeOfWork": {
+        "type": "string"
+      }
+    },
+    "description": "The container object for a specific Incident, Planned Special Event, Road Weather or Detour event; an instance of a GeoJSON Feature."
+  }

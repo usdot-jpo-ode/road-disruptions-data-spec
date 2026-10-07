@@ -1,0 +1,121 @@
+{
+    "$id": "https://raw.githubusercontent.com/usdot-jpo-ode/road-disruptions-data-spec/blob/develop/schemas/1.0/LocationSchemas.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Event Location Schemas",
+    "definitions": {
+      "Direction": {
+        "title": "Direction Enumerated Type",
+        "type": "string",
+        "enum": [
+          "northbound",
+          "eastbound",
+          "southbound",
+          "westbound",
+          "inner-loop",
+          "outer-loop",
+          "undefined",
+          "unknown"
+        ],
+        "description": "The direction of a road based on standard naming for US roads; indicates the direction the traffic flow not the real heading angle."
+      },
+      "BoundingBox": {
+        "title": "GeoJSON Bounding Box",
+        "type": "array",
+        "minItems": 4,
+        "items": {
+          "type": "number"
+        },
+        "description": "Create a bounding box around an event using a minimum of four longitude and latitude coordinates. Information on the coordinate range for a Geometry, Feature, or FeatureCollection."
+      },
+      "Position": {
+        "type": "array",
+        "minItems": 2,
+        "items": {
+          "type": "number"
+        }
+      },
+      "Point": {
+        "title": "GeoJSON Point",
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "properties": {
+          "type": {
+            "const": "Point"
+          },
+          "coordinates": {
+            "$ref": "#/definitions/Position"
+          }
+        }
+      },
+      "LineString": {
+        "title": "GeoJSON LineString",
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "properties": {
+          "type": {
+            "const": "LineString"
+          },
+          "coordinates": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "$ref": "#/definitions/Position"
+            }
+          }
+        }
+      },
+      "Polygon": {
+        "title": "GeoJSON Polygon",
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "properties": {
+          "type": {
+            "const": "Polygon"
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 4,
+              "items": {
+                "$ref": "#/definitions/Position"
+              }
+            }
+          }
+        }
+      },
+      "MultiLineString": {
+        "title": "GeoJSON MultiLineString",
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "properties": {
+          "type": {
+            "const": "MultiLineString"
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/definitions/Position"
+              }
+            }
+          }
+        }
+      }
+    },
+    "description": "Reusable direction, bounding-box, and GeoJSON geometry definitions."
+  }

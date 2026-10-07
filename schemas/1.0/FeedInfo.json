@@ -1,0 +1,99 @@
+{
+    "$id": "https://raw.githubusercontent.com/usdot-jpo-ode/road-disruptions-data-spec/blob/develop/schemas/1.0/FeedInfo.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Event Feed Information",
+    "type": "object",
+    "required": [
+      "publisher",
+      "update_frequency",
+      "update_date-time",
+      "version",
+      "license",
+      "data_sources"
+    ],
+    "properties": {
+      "publisher": {
+        "type": "string",
+        "description": "The organization responsible for publishing the feed. Examples: Virginia Department of Transportation, Kentucky Transportation Cabinet, Consultant ABC, Vendor XYZ. Do not abbreviate or use acronyms."
+      },
+      "contact_name": {
+        "type": "string",
+        "description": "The name of the individual or group responsible for publishing the data feed."
+      },
+      "contact_email": {
+        "type": "string",
+        "format": "email",
+        "description": "The email address of the individual or group responsible for publishing the data feed."
+      },
+      "update_frequency": {
+        "type": "integer",
+        "minimum": -1,
+        "description": "The frequency in seconds at which the data feed is updated."
+      },
+      "update_date-time": {
+        "type": "string",
+        "format": "date-time",
+        "description": "The UTC (Coordinated Universal Time) date and time when the GeoJSON file (representing the instance of the feed) was generated. Example: \u00272016-11-03T19:37:00Z\u0027."
+      },
+      "version": {
+        "type": "string",
+        "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+        "description": "The Event specification version used to create the data feed, in \u0027major.minor\u0027 format. Example: version 1.6 or version 2.0"
+      },
+      "license": {
+        "const": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "description": "The URL of the license that applies to the data in the Event feed. This *must* be the string \"https://creativecommons.org/publicdomain/zero/1.0/\"."
+      },
+      "data_sources": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "$ref": "#/definitions/FeedDataSource"
+        },
+        "description": "A list of specific data sources for the Event data in the feed."
+      }
+    },
+    "definitions": {
+      "FeedDataSource": {
+        "title": "Event Feed Data Source",
+        "type": "object",
+        "required": [
+          "data_source_id",
+          "organization_name",
+          "update_frequency",
+          "update_date-time"
+        ],
+        "properties": {
+          "data_source_id": {
+            "type": "string",
+            "description": "Unique identifier for the organization providing Event data. This identifier is a Universally Unique Identifier (UUID) as defined in [RFC 4122] (https://datatracker.ietf.org/doc/html/rfc4122). The UUID will remain constant (will not change over time) representing the owner of the data."
+          },
+          "organization_name": {
+            "type": "string",
+            "description": "The name of the organization for the authoritative source of the work zone data. Examples: Virginia Department of Transportation, Kentucky Transportation Cabinet, Consultant ABC, Vendor XYZ. Do not abbreviate the organization\u0027s name or use acronyms."
+          },
+          "contact_name": {
+            "type": "string",
+            "description": "The name of the individual or group responsible for the data source."
+          },
+          "contact_email": {
+            "type": "string",
+            "format": "email",
+            "description": "The email address of the individual or group responsible for the data source."
+          },
+          "update_frequency": {
+            "type": "integer",
+            "minimum": -1,
+            "description": "The frequency in seconds at which the data source is updated. Example: (\u002760\u0027 = 1 minute); (\u0027-1\u0027 = not being updated); (\u00270\u0027 - update on change)"
+          },
+          "update_date-time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The UTC date and time when the data source was last updated. Example: \u00272016-11-03T19:37:00Z\u0027."
+          }
+        },
+        "description": "Describes information about specific data source(s) used to build the Event data feed. Examples: Virginia Department of Transportation, Kentucky Transportation Cabinet, Consultant ABC, Vendor XYZ"
+      }
+    },
+    "description": "Describes Event feed header information such as metadata, contact information, and data sources."
+  }

@@ -1,0 +1,31 @@
+{
+    "$id": "https://raw.githubusercontent.com/usdot-jpo-ode/road-disruptions-data-spec/blob/develop/schemas/1.0/EventFeed.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Events v1.0 Event Feed",
+    "type": "object",
+    "required": [
+      "feed_info",
+      "type",
+      "features"
+    ],
+    "properties": {
+      "feed_info": {
+        "$ref": "https://raw.githubusercontent.com/usdot-jpo-ode/road-disruptions-data-spec/blob/develop/schemas/1.0/FeedInfo.json"
+      },
+      "type": {
+        "const": "FeatureCollection",
+        "description": "The GeoJSON type."
+      },
+      "features": {
+        "type": "array",
+        "items": {
+          "$ref": "https://raw.githubusercontent.com/usdot-jpo-ode/road-disruptions-data-spec/blob/develop/schemas/1.0/EventFeature.json"
+        },
+        "description": "An array of GeoJSON Feature objects which represent events."
+      },
+      "bbox": {
+        "$ref": "https://raw.githubusercontent.com/usdot-jpo-ode/road-disruptions-data-spec/blob/develop/schemas/1.0/LocationSchemas.json#/definitions/BoundingBox"
+      }
+    },
+    "description": "The GeoJSON output of an Event Feed v1.0 for Incidents, Planned Special Events, Road Weather, and Detours."
+  }

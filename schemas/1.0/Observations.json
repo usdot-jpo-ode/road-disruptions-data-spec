@@ -1,0 +1,1014 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/usdot-jpo-ode/road-disruptions-data-spec/blob/develop/schemas/1.0/Observations.json",
+  "title": "Transportation ITS Observations GeoJSON Feed (draft-07)",
+  "description": "GeoJSON FeatureCollection for Road Weather, Automatic Vehicle Location (AVL), and Vehicle Canbus observations with feed metadata and authoritative data sources.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "type",
+    "features",
+    "feedInfo",
+    "dataSources"
+  ],
+  "properties": {
+    "type": {
+      "const": "FeatureCollection"
+    },
+    "features": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/Feature"
+      }
+    },
+    "feedInfo": {
+      "$ref": "#/definitions/FeedInfo"
+    },
+    "dataSources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/DataSource"
+      }
+    }
+  },
+  "definitions": {
+    "uuid": {
+      "type": "string",
+      "description": "RFC4122 UUID",
+      "format": "uuid"
+    },
+    "dateTimeUTC": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp in ISO 8601, e.g., 2016-11-03T19:37:00Z"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "longitude": {
+      "type": "number",
+      "minimum": -180,
+      "maximum": 180
+    },
+    "latitude": {
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90
+    },
+    "elevation": {
+      "type": "number",
+      "description": "Elevation in feet (optional)."
+    },
+    "PointGeometry": {
+      "type": "object",
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "properties": {
+        "type": {
+          "const": "Point"
+        },
+        "coordinates": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": [
+            {
+              "$ref": "#/definitions/longitude"
+            },
+            {
+              "$ref": "#/definitions/latitude"
+            },
+            {
+              "$ref": "#/definitions/elevation"
+            }
+          ],
+          "additionalItems": false,
+          "description": "GeoJSON coordinate order: [longitude, latitude, elevation]"
+        }
+      },
+      "additionalProperties": false
+    },
+    "FeedInfo": {
+      "type": "object",
+      "required": [
+        "publisher",
+        "timestamp",
+        "frequency"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "publisher": {
+          "type": "string",
+          "description": "Organization publishing the feed (e.g., State Department of Transportation, Vendor XYZ)."
+        },
+        "contactName": {
+          "type": "string"
+        },
+        "contactEmail": {
+          "$ref": "#/definitions/email"
+        },
+        "timestamp": {
+          "$ref": "#/definitions/dateTimeUTC"
+        },
+        "frequency": {
+          "type": "integer",
+          "description": "Update cadence in seconds. -1 = not updated; 0 = update on change."
+        }
+      }
+    },
+    "DataSource": {
+      "type": "object",
+      "required": [
+        "dataSourceId",
+        "organizationName",
+        "timestamp",
+        "frequency"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "dataSourceId": {
+          "$ref": "#/definitions/uuid"
+        },
+        "organizationName": {
+          "type": "string"
+        },
+        "contactName": {
+          "type": "string"
+        },
+        "contactEmail": {
+          "$ref": "#/definitions/email"
+        },
+        "timestamp": {
+          "$ref": "#/definitions/dateTimeUTC"
+        },
+        "frequency": {
+          "type": "integer",
+          "description": "Update cadence in seconds. -1 = not updated; 0 = update on change."
+        }
+      }
+    },
+    "CommonProperties": {
+      "type": "object",
+      "required": [
+        "id",
+        "observationSource",
+        "timestamp"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/uuid"
+        },
+        "observationSource": {
+          "type": "string",
+          "enum": [
+            "Road Weather",
+            "AVL",
+            "Vehicle CAN bus"
+          ]
+        },
+        "timestamp": {
+          "$ref": "#/definitions/dateTimeUTC"
+        }
+      }
+    },
+    "Feature": {
+      "type": "object",
+      "required": [
+        "type",
+        "geometry",
+        "properties"
+      ],
+      "properties": {
+        "type": {
+          "const": "Feature"
+        },
+        "geometry": {
+          "$ref": "#/definitions/PointGeometry"
+        }
+      },
+      "additionalProperties": true,
+      "oneOf": [
+        {
+          "$ref": "#/definitions/RoadWeatherFeature"
+        },
+        {
+          "$ref": "#/definitions/AVLFeature"
+        },
+        {
+          "$ref": "#/definitions/VehicleCANbusFeature"
+        }
+      ]
+    },
+    "RoadWeatherFeature": {
+      "type": "object",
+      "required": [
+        "type",
+        "geometry",
+        "properties"
+      ],
+      "properties": {
+        "type": {
+          "const": "Feature"
+        },
+        "geometry": {
+          "$ref": "#/definitions/PointGeometry"
+        },
+        "properties": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/CommonProperties"
+            },
+            {
+              "type": "object",
+              "required": [
+                "observationSource",
+                "roadWeatherStation"
+              ],
+              "properties": {
+                "observationSource": {
+                  "const": "Road Weather"
+                },
+                "roadWeatherStation": {
+                  "$ref": "#/definitions/RoadWeatherStation"
+                }
+              },
+              "additionalProperties": true
+            }
+          ]
+        }
+      }
+    },
+    "RoadWeatherStation": {
+      "type": "object",
+      "required": [
+        "stationId",
+        "stationType",
+        "observations"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "stationId": {
+          "type": "string"
+        },
+        "stationType": {
+          "type": "string",
+          "enum": [
+            "permanent",
+            "transportable",
+            "mobile",
+            "virtual nowcast",
+            "virtual forecast",
+            "avl",
+            "vehicle CAN bus"
+          ]
+        },
+        "observations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/RoadWeatherObservation"
+          }
+        }
+      }
+    },
+    "CloudSituationEnum": {
+      "type": "string",
+      "enum": [
+        "overcast",
+        "cloudy",
+        "partlyCloudy",
+        "mostlyClear",
+        "clear"
+      ]
+    },
+    "MobileObservationGroundStateEnum": {
+      "type": "string",
+      "enum": [
+        "other",
+        "dry",
+        "moist",
+        "wet",
+        "flooded",
+        "frozen",
+        "glaze",
+        "dustySandy",
+        "veryDry",
+        "icy",
+        "patchyWetSnow",
+        "moderateWetSnowCover",
+        "fullWetSnowCover",
+        "patchyDrySnow",
+        "moderateDrySnowCover",
+        "fullDrySnowCover",
+        "driftingSnow",
+        "unknown",
+        "puddles",
+        "standingWater",
+        "flowingWater",
+        "freshSnow",
+        "plowedSnow",
+        "slush"
+      ]
+    },
+    "MobileObservationPavementEnum": {
+      "type": "string",
+      "enum": [
+        "other",
+        "dry",
+        "wet",
+        "puddles",
+        "shallowStandingWater",
+        "shallowFlowingWater",
+        "deepStandingWater",
+        "deepFlowingWater",
+        "dustingFreshSnow",
+        "moderateFreshSnow",
+        "deepFreshSnow",
+        "plowedSnow",
+        "slush",
+        "packedSnowPatches",
+        "packedSnow",
+        "lightSnowDrifts",
+        "moderateSnowDrifts",
+        "heavySnowDrifts",
+        "frost",
+        "icePatches",
+        "moderatelyIcy",
+        "heavyIcing",
+        "blackIce",
+        "sheetIce",
+        "frozenSlush",
+        "absorption",
+        "absorptionAtDewpoint",
+        "bareAndDry",
+        "bareAndWet",
+        "blowingsnow",
+        "chemicallyWet",
+        "dew",
+        "damp",
+        "wetSlush"
+      ]
+    },
+    "PrecipSituationEnum": {
+      "type": "string",
+      "enum": [
+        "other",
+        "unknown",
+        "noPrecipitation",
+        "unidentifiedSlight",
+        "unidentifiedModerate",
+        "unidentifiedHeavy",
+        "snowSlight",
+        "snowModerate",
+        "snowHeavy",
+        "rainSlight",
+        "rainModerate",
+        "rainHeavy",
+        "frozenPrecipitationSlight",
+        "frozenPrecipitationModerate",
+        "frozenPrecipitationHeavy"
+      ]
+    },
+    "PrecipYesNoEnum": {
+      "type": "string",
+      "enum": [
+        "precip",
+        "noPrecip",
+        "error"
+      ]
+    },
+    "SurfaceBlackIceSignalEnum": {
+      "type": "string",
+      "enum": [
+        "other",
+        "noIce",
+        "blackIce",
+        "detectorError"
+      ]
+    },
+    "SurfaceStatusEnum": {
+      "type": "string",
+      "enum": [
+        "other",
+        "error",
+        "dry",
+        "traceMoisture",
+        "wet",
+        "chemicallyWet",
+        "iceWarning",
+        "iceWatch",
+        "snowWarning",
+        "snowWatch",
+        "absorption",
+        "dew",
+        "frost",
+        "absorptionAtDewpoint"
+      ]
+    },
+    "VisibilitySituationEnum": {
+      "type": "string",
+      "enum": [
+        "other",
+        "unknown",
+        "clear",
+        "fogNotPatchy",
+        "patchyFog",
+        "blowingSnow",
+        "smoke",
+        "seaSpray",
+        "vehicleSpray",
+        "blowingDustOrSand",
+        "sunGlare",
+        "swarmsOfInsects"
+      ]
+    },
+    "PavementSensorForecastConditionEnum": {
+      "type": "string",
+      "enum": [
+        "other",
+        "error",
+        "noAdvisory",
+        "iceAdvisory",
+        "slushAdvisory",
+        "freezeAdvisory",
+        "freezeHazard",
+        "noReport"
+      ]
+    },
+    "PavementSensorSurfaceConditionEnum": {
+      "type": "string",
+      "enum": [
+        "other",
+        "error",
+        "dry",
+        "moist",
+        "chemicallyMoist",
+        "wet",
+        "chemicallyWet",
+        "standingWater",
+        "frost",
+        "slush",
+        "snow",
+        "ice",
+        "noReport"
+      ]
+    },
+    "WindSensorSituationEnum": {
+      "type": "string",
+      "enum": [
+        "other",
+        "unknown",
+        "calm",
+        "lightBreeze",
+        "moderateBreeze",
+        "strongBreeze",
+        "gale",
+        "moderateGale",
+        "strongGale",
+        "stormWinds",
+        "hurricaneForceWinds",
+        "gustyWinds"
+      ]
+    },
+    "RoadWeatherObservationBase": {
+      "type": "object",
+      "required": [
+        "timestamp",
+        "observationType",
+        "observationValue",
+        "observationIndex"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "timestamp": {
+          "$ref": "#/definitions/dateTimeUTC"
+        },
+        "observationType": {
+          "type": "string"
+        },
+        "observationValue": {},
+        "observationUnit": {
+          "type": "string"
+        },
+        "observationIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sensorType": {
+          "type": "string"
+        }
+      }
+    },
+    "RoadWeatherObservation": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/RoadWeatherObservationBase"
+        }
+      ],
+      "oneOf": [
+        {
+          "properties": {
+            "observationType": {
+              "enum": [
+                "CloudCoverSituationV4",
+                "AdjacentSnowDepth",
+                "AirTemperature",
+                "CO",
+                "CO2V4",
+                "DewpointTemp",
+                "IceThickness",
+                "InstantaneousSolarRadiationV4",
+                "InstantaneousTerrestrialRadiationV4",
+                "MaxTemp",
+                "MinTemp",
+                "NO2",
+                "NOV4",
+                "O3V4",
+                "PavementElevation",
+                "PavementExposure",
+                "PavementTemperature",
+                "PM10",
+                "PM25",
+                "Precipitation24Hours",
+                "PrecipitationEndTime",
+                "PrecipitationOneHour",
+                "PrecipitationSixHours",
+                "PrecipitationStartTime",
+                "PrecipitationThreeHours",
+                "PrecipitationTwelveHours",
+                "PrecipRate",
+                "RelativeHumidity",
+                "RoadwaySnowDepth",
+                "RoadwaySnowPackDepth",
+                "SnowfallAccumRate",
+                "SO2",
+                "SolarRadiation",
+                "SubSurfaceMoisture",
+                "SubSurfaceSensorDepth",
+                "SubSurfaceTemperature",
+                "SurfaceConductivityV2",
+                "SurfaceFreezePoint",
+                "SurfaceIceOrWaterDepth",
+                "SurfaceSalinity",
+                "SurfaceTemperature",
+                "TotalRadiation",
+                "TotalRadiationPeriod",
+                "TotalRadiationV4",
+                "TotalSun",
+                "TotalSunV4",
+                "Visibility",
+                "WaterDepth",
+                "WetbulbTemp",
+                "humiditySensorDewpointTemp",
+                "humiditySensorRelativeHumidity",
+                "humiditySensorTemperatureInformation",
+                "humiditySensorWetbulbTemp",
+                "numEssPavementSensors",
+                "numEssSubSurfaceSensors",
+                "pavementIcePercentage",
+                "pavementSensorFrictionCoefficient",
+                "pavementSensorTemperatureDepth",
+                "precipitationSensorAdjacentSnowDepth",
+                "precipitationSensorIceThickness",
+                "precipitationSensorPeriod",
+                "precipitationSensorPrecipitation24Hours",
+                "precipitationSensorPrecipitationEndTime",
+                "precipitationSensorPrecipitationOneHour",
+                "precipitationSensorPrecipitationSixHours",
+                "precipitationSensorPrecipitationStartTime",
+                "precipitationSensorPrecipitationThreeHours",
+                "precipitationSensorPrecipitationTwelveHours",
+                "precipitationSensorPrecipitationUserDefined",
+                "precipitationSensorPrecipRate",
+                "precipitationSensorRoadwaySnowDepth",
+                "precipitationSensorRoadwaySnowPackDepth",
+                "precipitationSensorSnowfallAccumRate",
+                "waterLevelSensorReading",
+                "waterLevelSensorReferencePoint",
+                "waterLevelSensorWarningLevel",
+                "windSensorAvgDirection",
+                "windSensorAvgSpeed",
+                "windSensorGustDirection",
+                "windSensorGustSpeed",
+                "windSensorSpotDirection",
+                "windSensorSpotSpeed"
+              ]
+            },
+            "observationValue": {
+              "type": "number"
+            }
+          }
+        },
+        {
+          "properties": {
+            "observationType": {
+              "const": "CloudSituation"
+            },
+            "observationValue": {
+              "$ref": "#/definitions/CloudSituationEnum"
+            }
+          }
+        },
+        {
+          "properties": {
+            "observationType": {
+              "const": "MobileObservationGroundStateV4"
+            },
+            "observationValue": {
+              "$ref": "#/definitions/MobileObservationGroundStateEnum"
+            }
+          }
+        },
+        {
+          "properties": {
+            "observationType": {
+              "const": "MobileObservationPavementV4"
+            },
+            "observationValue": {
+              "$ref": "#/definitions/MobileObservationPavementEnum"
+            }
+          }
+        },
+        {
+          "properties": {
+            "observationType": {
+              "enum": [
+                "PrecipSituation",
+                "precipitationSensorPrecipSituation"
+              ]
+            },
+            "observationValue": {
+              "$ref": "#/definitions/PrecipSituationEnum"
+            }
+          }
+        },
+        {
+          "properties": {
+            "observationType": {
+              "enum": [
+                "PrecipYesNo",
+                "precipitationSensorPrecipYesNo"
+              ]
+            },
+            "observationValue": {
+              "$ref": "#/definitions/PrecipYesNoEnum"
+            }
+          }
+        },
+        {
+          "properties": {
+            "observationType": {
+              "const": "SurfaceBlackIceSignal"
+            },
+            "observationValue": {
+              "$ref": "#/definitions/SurfaceBlackIceSignalEnum"
+            }
+          }
+        },
+        {
+          "properties": {
+            "observationType": {
+              "const": "SurfaceStatus"
+            },
+            "observationValue": {
+              "$ref": "#/definitions/SurfaceStatusEnum"
+            }
+          }
+        },
+        {
+          "properties": {
+            "observationType": {
+              "const": "VisibilitySituation"
+            },
+            "observationValue": {
+              "$ref": "#/definitions/VisibilitySituationEnum"
+            }
+          }
+        },
+        {
+          "properties": {
+            "observationType": {
+              "const": "pavementSensorForecastCondition"
+            },
+            "observationValue": {
+              "$ref": "#/definitions/PavementSensorForecastConditionEnum"
+            }
+          }
+        },
+        {
+          "properties": {
+            "observationType": {
+              "const": "pavementSensorSurfaceCondition"
+            },
+            "observationValue": {
+              "$ref": "#/definitions/PavementSensorSurfaceConditionEnum"
+            }
+          }
+        },
+        {
+          "properties": {
+            "observationType": {
+              "const": "windSensorSituation"
+            },
+            "observationValue": {
+              "$ref": "#/definitions/WindSensorSituationEnum"
+            }
+          }
+        }
+      ]
+    },
+    "AVLFeature": {
+      "type": "object",
+      "required": [
+        "type",
+        "geometry",
+        "properties"
+      ],
+      "properties": {
+        "type": {
+          "const": "Feature"
+        },
+        "geometry": {
+          "$ref": "#/definitions/PointGeometry"
+        },
+        "properties": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/CommonProperties"
+            },
+            {
+              "type": "object",
+              "required": [
+                "observationSource",
+                "avlVehicle"
+              ],
+              "properties": {
+                "observationSource": {
+                  "const": "AVL"
+                },
+                "avlVehicle": {
+                  "$ref": "#/definitions/AVLVehicle"
+                }
+              },
+              "additionalProperties": true
+            }
+          ]
+        }
+      }
+    },
+    "AVLVehicle": {
+      "type": "object",
+      "required": [
+        "vehicleId",
+        "vehicleDirection",
+        "observations"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "vehicleId": {
+          "type": "string"
+        },
+        "vehicleType": {
+          "type": "string",
+          "enum": [
+            "Heavy Duty",
+            "Medium Duty",
+            "Light Duty"
+          ]
+        },
+        "vehicleDirection": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360
+        },
+        "vehicleSpeed": {
+          "type": "number",
+          "description": "mph"
+        },
+        "laneOfTravel": {
+          "type": "string"
+        },
+        "cameraLinks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "One or more image/video URIs."
+        },
+        "observations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/AVLObservation"
+          }
+        }
+      }
+    },
+    "AVLObservation": {
+      "type": "object",
+      "required": [
+        "timestamp",
+        "observationType",
+        "observationValue"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "timestamp": {
+          "$ref": "#/definitions/dateTimeUTC"
+        },
+        "observationType": {
+          "type": "string",
+          "enum": [
+            "Spreader Status",
+            "Plowing Status",
+            "Snow Blowing Status",
+            "Plow Status",
+            "Strobe Lights Status",
+            "Windshield Wiper Status",
+            "Windshield Wiper Intensity",
+            "Solar Sensor Status",
+            "Driver observation"
+          ]
+        },
+        "observationValue": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "on",
+                "off",
+                "yes",
+                "no",
+                "up",
+                "down"
+              ]
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Numeric or enumerated/string value depending on observation type."
+        },
+        "observationValueManual": {
+          "type": "string"
+        },
+        "observationUnit": {
+          "type": "string"
+        },
+        "observationIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sensorType": {
+          "type": "string"
+        }
+      }
+    },
+    "VehicleCANbusFeature": {
+      "type": "object",
+      "required": [
+        "type",
+        "geometry",
+        "properties"
+      ],
+      "properties": {
+        "type": {
+          "const": "Feature"
+        },
+        "geometry": {
+          "$ref": "#/definitions/PointGeometry"
+        },
+        "properties": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/CommonProperties"
+            },
+            {
+              "type": "object",
+              "required": [
+                "observationSource",
+                "CANbusVehicle"
+              ],
+              "properties": {
+                "observationSource": {
+                  "const": "Vehicle CAN bus"
+                },
+                "CANbusVehicle": {
+                  "$ref": "#/definitions/CANbusVehicle"
+                }
+              },
+              "additionalProperties": true
+            }
+          ]
+        }
+      }
+    },
+    "CANbusVehicle": {
+      "type": "object",
+      "required": [
+        "vehicleId",
+        "vehicleDirection",
+        "observations"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "vehicleId": {
+          "type": "string"
+        },
+        "vehicleType": {
+          "type": "string",
+          "enum": [
+            "Heavy Duty",
+            "Medium Duty",
+            "Light Duty"
+          ]
+        },
+        "vehicleDirection": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360
+        },
+        "vehicleSpeed": {
+          "type": "number",
+          "description": "mph"
+        },
+        "laneOfTravel": {
+          "type": "string"
+        },
+        "observations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/CANbusObservation"
+          }
+        }
+      }
+    },
+    "CANbusObservation": {
+      "type": "object",
+      "required": [
+        "timestamp",
+        "observationType",
+        "observationValue"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "timestamp": {
+          "$ref": "#/definitions/dateTimeUTC"
+        },
+        "observationType": {
+          "type": "string",
+          "enum": [
+            "Traction Control Status",
+            "Stability Control Status",
+            "Automatic Light Sensor",
+            "Antilock Braking System (ABS) Status",
+            "Accelerometers",
+            "Lane Keep Assist Status",
+            "Lidar",
+            "Radar"
+          ]
+        },
+        "observationValue": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "on",
+                "off"
+              ]
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Numeric or on/off/string depending on observation type."
+        },
+        "observationUnit": {
+          "type": "string"
+        },
+        "observationIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sensorType": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+ 
